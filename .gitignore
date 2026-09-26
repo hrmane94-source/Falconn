@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+*.log
+
+# Local data / potentially sensitive files
+data/raw/
+data/private/
+data/processed/
+uploads/
+outputs/
+
+# Model artifacts
+*.pt
+*.pth
+*.onnx
+*.safetensors
+
+# IDE
+.vscode/
+.idea/

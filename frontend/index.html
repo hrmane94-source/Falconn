@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FALCON — Screening Prototype</title>
+  <style>
+    :root {
+      --navy:#0b2a4a;
+      --blue:#1769aa;
+      --light:#eef5fb;
+      --border:#c9dced;
+      --text:#17324d;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family:Segoe UI,Arial,sans-serif;
+      background:#f6f9fc;
+      color:var(--text);
+    }
+    header {
+      background:white;
+      border-bottom:1px solid var(--border);
+      padding:22px 32px;
+    }
+    .brand { font-size:28px; font-weight:800; color:var(--navy); }
+    .sub { color:#52708b; margin-top:4px; }
+    main { max-width:1100px; margin:30px auto; padding:0 20px; }
+    .hero, .panel {
+      background:white;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 8px 24px rgba(19,54,84,.06);
+    }
+    .hero { padding:28px; margin-bottom:20px; }
+    h1 { margin:0 0 8px; color:var(--navy); }
+    .muted { color:#60788e; }
+    .upload {
+      margin-top:20px;
+      padding:22px;
+      background:var(--light);
+      border:1px dashed #8fb3d1;
+      border-radius:14px;
+    }
+    input[type=file] { margin:12px 0; }
+    button {
+      background:var(--navy);
+      color:white;
+      border:0;
+      border-radius:9px;
+      padding:11px 18px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+      margin-top:20px;
+    }
+    .check {
+      padding:18px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:white;
+    }
+    .check b { display:block; margin-bottom:6px; }
+    .status { color:#647b90; font-size:14px; }
+    pre {
+      white-space:pre-wrap;
+      background:#0d1f30;
+      color:#dceeff;
+      padding:18px;
+      border-radius:12px;
+      overflow:auto;
+      margin-top:20px;
+    }
+    @media(max-width:800px){ .grid{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">FALCON</div>
+  <div class="sub">AI-Based Fake Identity & Document Screening — Prototype</div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Document Screening Console</h1>
+    <div class="muted">
+      Capture → OCR & Validation → Forensics → Identity Match → Risk Decision
+    </div>
+
+    <div class="upload">
+      <b>Upload a document image</b><br>
+      <input id="file" type="file" accept="image/*,.pdf">
+      <br>
+      <button id="analyze">Send to FALCON</button>
+      <div id="message" class="status"></div>
+    </div>
+
+    <div class="grid">
+      <div class="check"><b>OCR & Validation</b><span id="ocr" class="status">Not connected</span></div>
+      <div class="check"><b>Forensic Analysis</b><span id="forensics" class="status">Not connected</span></div>
+      <div class="check"><b>Identity Match</b><span id="face" class="status">Not connected</span></div>
+      <div class="check"><b>Liveness</b><span id="live" class="status">Not connected</span></div>
+      <div class="check"><b>Risk Score</b><span id="risk" class="status">Not connected</span></div>
+      <div class="check"><b>System Status</b><span id="system" class="status">Prototype</span></div>
+    </div>
+
+    <pre id="output">Waiting for a document...</pre>
+  </section>
+</main>
+
+<script>
+const button = document.getElementById("analyze");
+
+button.addEventListener("click", async () => {
+  const file = document.getElementById("file").files[0];
+  if (!file) {
+    document.getElementById("message").textContent = "Select a document first.";
+    return;
+  }
+
+  button.disabled = true;
+  document.getElementById("message").textContent = "Uploading...";
+
+  const form = new FormData();
+  form.append("file", file);
+
+  try {
+    const response = await fetch("/api/analyze", { method:"POST", body:form });
+    const data = await response.json();
+
+    document.getElementById("message").textContent = data.message;
+    document.getElementById("ocr").textContent = data.analysis.ocr;
+    document.getElementById("forensics").textContent = data.analysis.forensics;
+    document.getElementById("face").textContent = data.analysis.face_match;
+    document.getElementById("live").textContent = data.analysis.liveness;
+    document.getElementById("risk").textContent = "Pending trained model";
+    document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+  } catch (error) {
+    document.getElementById("message").textContent = "Connection failed. Is the API running?";
+  } finally {
+    button.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
